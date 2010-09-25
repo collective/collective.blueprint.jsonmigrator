@@ -1,0 +1,10 @@
+*.egg-info/
+*.pyc
+*.swp
+/dist/
+/docs/_build/
+/bin/
+/include/
+/lib
+/sphinx-to-github/
+

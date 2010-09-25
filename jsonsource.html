@@ -1,0 +1,164 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>collective.blueprint.jsonmigrator.source &mdash; collective.blueprint.jsonmigrator v0.1.1 documentation</title>
+    <link rel="stylesheet" href="static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="collective.blueprint.jsonmigrator v0.1.1 documentation" href="index.html" />
+    <link rel="next" title="collective.blueprint.jsonmigrator.skipitems" href="skipitems.html" />
+    <link rel="prev" title="collective.blueprint.jsonmigrator’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="skipitems.html" title="collective.blueprint.jsonmigrator.skipitems"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="collective.blueprint.jsonmigrator’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">collective.blueprint.jsonmigrator</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="collective-blueprint-jsonmigrator-source">
+<h1><tt class="docutils literal"><span class="pre">collective.blueprint.jsonmigrator.source</span></tt><a class="headerlink" href="#collective-blueprint-jsonmigrator-source" title="Permalink to this headline">¶</a></h1>
+<p>Read JSON files and insert them into tranmogrifier pipeline.</p>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name" colspan="2">path (required):</th></tr>
+<tr><td>&nbsp;</td><td class="field-body"><p class="first">Path to directory containing JSON files (look in example bellow).</p>
+<p class="last">Also possible to specify in <tt class="docutils literal"><span class="pre">some.package:path/to/json/directory</span></tt> way.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Configuration:</p>
+<div class="highlight-python"><pre>[tranmogrifier]
+pipeline =
+    source
+
+[source]
+blueprint = collective.blueprint.jsonmigrator.source
+path = some.package:/path/to/json/dir</pre>
+</div>
+<p>JSON files structure:</p>
+<div class="highlight-python"><pre>some.package:/path/to/json/dir
+    |-&gt; 0/
+        |-&gt; 1.json
+        |-&gt; 2.json
+        ...
+        |-&gt; 999.json
+    |-&gt; 1/
+        |-&gt; 1000.json
+        |-&gt; 1001.json
+        ...</pre>
+</div>
+<p>JSON file:</p>
+<div class="highlight-python"><pre>{
+    "_path": "/Plone/front-page",
+    "_type": "Document",
+    ...
+}</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">collective.blueprint.jsonmigrator.source</span></tt></a><ul>
+<li><a class="reference internal" href="#parameters">Parameters</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">collective.blueprint.jsonmigrator&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="skipitems.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">collective.blueprint.jsonmigrator.skipitems</span></tt></a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="sources/jsonsource.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="skipitems.html" title="collective.blueprint.jsonmigrator.skipitems"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="collective.blueprint.jsonmigrator’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">collective.blueprint.jsonmigrator</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, garbas.
+      Last updated on Sep 25, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.4.
+    </div>
+  </body>
+</html>
