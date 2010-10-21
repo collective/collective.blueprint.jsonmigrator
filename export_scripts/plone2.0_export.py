@@ -1,3 +1,4 @@
+
 ###############################################################################
 #####                                                                     #####
 #####   IMPORTANT, READ THIS !!!                                          #####
@@ -16,7 +17,7 @@ from Acquisition import aq_base
 from Products.CMFCore.utils import getToolByName
 
 COUNTER = 1
-HOMEDIR = '/Users/rok/Projects/yaco/unex_exported_data'
+HOMEDIR = '/my/export/path'
 CLASSNAME_TO_SKIP_LAUD = ['ControllerPythonScript',
     'ControllerPageTemplate', 'ControllerValidator', 'PythonScript', 'SQL', 'Connection',
     'ZetadbScript', 'ExternalMethod', 'ZetadbSqlInsert', 'ZetadbMysqlda', 'SiteRoot',
@@ -32,7 +33,14 @@ CLASSNAME_TO_SKIP = ['CatalogTool', 'MemberDataTool', 'SkinsTool', 'TypesTool',
     'ArchetypeTool', 'RAMCacheManager', 'PloneArticleTool', 'SyndicationInformation',
     'ActionIconsTool', 'AcceleratedHTTPCacheManager', 'ActionsTool', 'UIDCatalog',
     'ReferenceCatalog', 'ContentPanelsTool', 'MimeTypesRegistry', 'LanguageTool',
-    'TransformTool']
+    'TransformTool', 'CSSRegistryTool', 'JSRegistryTool', 'TranslationServiceTool', 
+    'SecureMailHost', 'ATCTTool', 'UniqueIdAnnotationTool', 'UniqueIdGeneratorTool', 
+    'UniqueIdHandlerTool', 'PortalMail', 'CalendarPathTool', 'LoginHistoryTool', 
+    'PlacefulWorkflowTool','PasswordResetTool', 'PluggableAuthService', 'SetupTool', 
+    'MembraneTool', 'MemberDataContainer', 'UserAdder', 'ModifierRegistryTool', 
+    'ArchivistTool', 'ZVCStorageTool', 'CopyModifyMergeRepositoryTool', 
+    'ReferenceFactoriesTool', 'KeepLastNVersionsTool', 'LatexTool', 
+    'PloneFilesZipTool', 'FormGenTool', 'PloneKupuLibraryTool']
 ID_TO_SKIP = ['Members', ]
 
 
@@ -106,8 +114,15 @@ def write_to_jsonfile(item):
         for datafield in item['__datafields__']:
             datafield_filepath = os.path.join(SUB_TMPDIR, str(COUNTER)+'.json-file-'+str(datafield_counter))
             f = open(datafield_filepath, 'wb')
-            f.write(item[datafield])
-            item[datafield] = os.path.join(str(COUNTER/1000), str(COUNTER)+'.json-file-'+str(datafield_counter))
+            data = item[datafield]
+            filename = ''
+            if isinstance(data, dict):
+                data = data['data']
+                filename = item[datafield]['filename']
+            f.write(data)
+            item[datafield] = {}
+            item[datafield]['path'] = os.path.join(str(COUNTER/1000), str(COUNTER)+'.json-file-'+str(datafield_counter))
+            item[datafield]['filename'] = filename
             f.close()
             datafield_counter += 1
         item.pop(u'__datafields__')
@@ -162,9 +177,17 @@ class BaseWrapper(dict):
 
         self['_type'] = self.obj.__class__.__name__
 
+        # for plone.app.transmogrifier.uidupdater
+        self[u'_uid'] = u''
+        if hasattr(self.obj, 'UID'):
+            self[u'_uid'] = self.obj.UID()
         self['id'] = obj.getId()
-        self['title'] = obj.title.decode(self.charset, 'ignore')
-        self['description'] = obj.description.decode(self.charset, 'ignore')
+        # Do nothing in case of an ATCT - ArchetypeWrapper will get all fields
+        self['title'] = u''
+        self['description'] = u''
+        if not getattr(obj, 'schema', None):
+            self['title'] = obj.title.decode(self.charset, 'ignore')
+            self['description'] = obj.description.decode(self.charset, 'ignore')
         self['language'] = obj.language
         self['rights'] = obj.rights.decode(self.charset, 'ignore')
         # for DC attrs that are tuples
@@ -192,16 +215,21 @@ class BaseWrapper(dict):
                 for w in workflow_history:
                     for i, w2 in enumerate(workflow_history[w]):
                         workflow_history[w][i]['time'] = str(workflow_history[w][i]['time'])
-                        workflow_history[w][i]['comments'] = workflow_history[w][i]['comments'].decode(self.charset, 'ignore')
+                        # check for unicode
+                        comments = workflow_history[w][i]['comments']
+                        if not isinstance(comments, unicode):
+                            workflow_history[w][i]['comments'] = comments.decode(self.charset, 'ignore')
+                        else: 
+                            workflow_history[w][i]['comments'] = comments
             except:
                 import pdb; pdb.set_trace()
             self['_workflow_history'] = workflow_history
 
         # default view
-        _browser = '/'.join(self.portal_utils.browserDefault(aq_base(obj))[1])
-        if _browser not in ['folder_listing']:
-            self['_layout'] = ''
-            self['_defaultpage'] = _browser
+        #_browser = '/'.join(self.portal_utils.browserDefault(aq_base(obj))[1])
+        #if _browser not in ['folder_listing']:
+        #    self['_layout'] = ''
+        #    self['_defaultpage'] = _browser
         #elif obj.getId() != 'index_html':
         #    self['_layout'] = _browser
         #    self['_defaultpage'] = ''
@@ -358,6 +386,14 @@ class SortCriteriaWrapper(BaseWrapper):
         self['index'] = obj.index
         self['reversed'] = obj.reversed
 
+class ATSortCriteriaWrapper(BaseWrapper):
+                
+    def __init__(self, obj):
+        super(ATSortCriteriaWrapper, self).__init__(obj)
+        #import pdb;pdb.set_trace()
+        self['index'] = obj.field
+        self['reversed'] = obj.reversed
+
 
 class DateCriteriaWrapper(BaseWrapper):
 
@@ -367,7 +403,6 @@ class DateCriteriaWrapper(BaseWrapper):
         self['value'] = obj.value
         self['operation'] = obj.operation
         self['daterange'] = obj.daterange
-
 
 class FileWrapper(BaseWrapper):
 
@@ -408,7 +443,7 @@ class ArchetypesWrapper(BaseWrapper):
 
     def __init__(self, obj):
         super(ArchetypesWrapper, self).__init__(obj)
-
+        
         fields = obj.schema.fields()
         for field in fields:
             type_ = field.__class__.__name__
@@ -436,13 +471,14 @@ class ArchetypesWrapper(BaseWrapper):
                 value = str(field.get(obj))
                 if value:
                     self[unicode(field.__name__)] = value
+            # store uid, otherwise plone.app.transmogrifier.atschemaupdater will no work
             elif type_ in ['ReferenceField']:
                 value = field.get(obj)
                 if value:
                     if field.multiValued:
-                        self[unicode(field.__name__)] = ['/'+i.absolute_url() for i in value]
+                        self[unicode(field.__name__)] = [i.UID() for i in value]
                     else:
-                        self[unicode(field.__name__)] = value.absolute_url()
+                        self[unicode(field.__name__)] = value.UID()
             elif type_ in ['ImageField', 'FileField']:
                 fieldname = unicode('_data_'+field.__name__)
                 value = field.get(obj)
@@ -454,10 +490,14 @@ class ArchetypesWrapper(BaseWrapper):
                     self['__datafields__'].append(fieldname)
                     self[fieldname] = {
                         'data': value,
-                        'size': size, }
-            elif type_ in ['ComputedField']:
+                        'size': size,
+                       'filename': getattr(value2, 'filename', '').decode(
+                        self.charset,
+                        'ignore'), }
+            elif type_ in ['ComputedField', ]:
                 pass
             else:
+                import pdb;pdb.set_trace()
                 raise 'Unknown field type for ArchetypesWrapper.'
 
     def _guessFilename(self, data, fname='', mimetype='', default=''):
@@ -642,6 +682,41 @@ CLASSNAME_TO_WAPPER_MAP = {
     'SortCriterion':            SortCriteriaWrapper,
     'FriendlyDateCriterion':    DateCriteriaWrapper,
 
+    # for plone 2.5
+    'ATFolder':                 ArchetypesWrapper,
+    'ATDocument':               ArchetypesWrapper,
+    'ATEvent':                  ArchetypesWrapper,
+    'ATFile':                   ArchetypesWrapper,
+    'ATTopic':                  ArchetypesWrapper,
+    'ATImage':                  ArchetypesWrapper,
+    'ATLink':                   ArchetypesWrapper,
+    'ATNewsItem':               ArchetypesWrapper,
+    'ATSortCriterion':          ATSortCriteriaWrapper,
+    'ATPortalTypeCriterion':    StringCriteriaWrapper,
+
+    # PloneFormGen - not tested
+    'FGBooleanField':         ArchetypesWrapper,
+    'FGCustomScriptAdapter':  ArchetypesWrapper,
+    'FGDateField':            ArchetypesWrapper,
+    'FGFileField':            ArchetypesWrapper,
+    'FGFixedPointField':      ArchetypesWrapper,
+    'FormFolder':             ArchetypesWrapper,
+    'FGIntegerField':         ArchetypesWrapper,
+    'FGLabelField':           ArchetypesWrapper,
+    'FGLikertField':          ArchetypesWrapper,
+    'FGLinesField':           ArchetypesWrapper,
+    'FormMailerAdapter':      ArchetypesWrapper,
+    'FGMultiSelectionField':  ArchetypesWrapper,
+    'FGPasswordField':        ArchetypesWrapper,
+    'FGRichLabelField':       ArchetypesWrapper,
+    'FGRichTextField':        ArchetypesWrapper,
+    'FormSaveDataAdapter':    ArchetypesWrapper,
+    'FGSelectionField':       ArchetypesWrapper,
+    'FGStringField':          ArchetypesWrapper,
+    'FGTextField':            ArchetypesWrapper,
+    'FormThanksPage':         ArchetypesWrapper,
+
+
     # custom ones
     'I18NFolder':               I18NFolderWrapper,
     'I18NLayer':                I18NLayerWrapper,
@@ -655,3 +730,4 @@ CLASSNAME_TO_WAPPER_MAP = {
     'ZopePageTemplate':         ZopeObjectWrapper,
 
 }
+

@@ -64,7 +64,7 @@ class JSONSource(object):
 
                 for key in item.keys():
                     if key.startswith(self.datafield_prefix):
-                        item[key] = os.path.join(self.path, item[key])
+                        item[key]['path'] = os.path.join(self.path, item[key]['path'])
 
                 yield item
 
@@ -507,7 +507,6 @@ class DataFields(object):
 
             if not pathkey:                     # not enough info
                 yield item; continue
-
             obj = self.context.unrestrictedTraverse(item[pathkey].lstrip('/'), None)
             if obj is None:                     # path doesn't exist
                 yield item; continue
@@ -516,15 +515,17 @@ class DataFields(object):
                 for key in item.keys():
                     if not key.startswith(self.datafield_prefix):
                         continue
-                    if not os.path.exists(item[key]):
+                    if not os.path.exists(item[key]['path']):
                         continue
 
                     fieldname = key[len(self.datafield_prefix):]
                     field = obj.getField(fieldname)
-                    f = open(item[key])
+                    f = open(item[key]['path'])
                     value = f.read()
                     f.close()
                     if len(value) != len(field.get(obj)):
                         field.set(obj, value)
+                    # set filename anyway
+                    field.get(obj).filename = item[key]['filename']
 
             yield item
